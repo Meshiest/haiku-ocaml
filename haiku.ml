@@ -12,29 +12,18 @@ let emptyDict = (
 
 (* Reads `file` and stores lines in a string list *)
 let readFile file =
-  let lines = ref [] in
-  let channel = open_in file in
-  try
-    while true do
-      lines := input_line channel :: !lines
-    done;
-    !lines
-  with End_of_file ->
-    close_in channel;
-    !lines;;
+  let rec readLine chan = match input_line chan with
+      line -> line::readLine chan
+    | exception End_of_file -> close_in chan; []
+  in open_in file |> readLine;; 
 
 (* Counts the times substring `sub` appears in string `str` *)
 let count str sub =
   let search = search_forward (regexp sub) str in
-  let times = ref 0 in
-  let index = ref 0 in
-  try
-    while true do
-      index := (search !index) + 1 ;
-      times := !times + 1
-    done;
-    !times
-  with Not_found -> !times;;
+  let rec next i = match search i with
+      exception Not_found -> 0
+    | n -> (next (n+1)) + 1
+  in next 0;;
 
 (* Concatenates a string to a tuple dict index based on number of asterisks *)
 let dictAppend dict str =
